@@ -1,0 +1,74 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c-bg: #0f0f1a;
+  --c-surface: #1a1a2e;
+  --c-border: #2a2a4a;
+  --c-primary: #6c63ff;
+  --c-accent: #00d4aa;
+  --c-danger: #ff4757;
+  --c-text: #e8e8f0;
+  --c-muted: #8888aa;
+  --radius: 12px;
+  --gap: 1rem;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100dvh;
+}
+
+a { color: var(--c-primary); text-decoration: none; }
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.primary { background: var(--c-primary); color: #fff; }
+button.accent  { background: var(--c-accent); color: #000; }
+button.danger  { background: var(--c-danger); color: #fff; }
+button.ghost   { background: transparent; border: 1px solid var(--c-border); color: var(--c-text); }
+
+input, select, textarea {
+  width: 100%;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  color: var(--c-text);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+}
+input:focus, select:focus { outline: 2px solid var(--c-primary); }
+
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: var(--gap);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge.active  { background: #00d4aa22; color: var(--c-accent); }
+.badge.pending { background: #ffaa0022; color: #ffaa00; }
+.badge.closed  { background: #ff475722; color: var(--c-danger); }
+
+.container { max-width: 480px; margin: 0 auto; padding: 0 var(--gap); }
+.stack { display: flex; flex-direction: column; gap: var(--gap); }
+.row   { display: flex; align-items: center; gap: 0.5rem; }
+.spacer { flex: 1; }
+.muted { color: var(--c-muted); font-size: 0.875rem; }

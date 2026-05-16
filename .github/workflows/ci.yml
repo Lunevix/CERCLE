@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test-backend:
+    name: Backend — Lint & Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cercle_test
+          POSTGRES_USER: cercle
+          POSTGRES_PASSWORD: cercle
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: npm ci
+      - run: npm run lint --workspace=backend
+      - run: npm run test --workspace=backend
+        env:
+          DATABASE_URL: postgresql://cercle:cercle@localhost:5432/cercle_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret
+
+  lint-and-test-frontend:
+    name: Frontend — Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: npm ci
+      - run: npm run lint --workspace=frontend
+      - run: npm run test --workspace=frontend
+      - run: npm run build --workspace=frontend
+
+  contracts:
+    name: Contracts — Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: contracts }
+      - name: Build contracts
+        run: cargo build --target wasm32-unknown-unknown --release
+        working-directory: contracts
+      - name: Test contracts
+        run: cargo test
+        working-directory: contracts
+
+  deploy-testnet:
+    name: Deploy to Testnet
+    needs: [lint-and-test-backend, lint-and-test-frontend, contracts]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: testnet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install Stellar CLI
+        run: cargo install stellar-cli --locked
+      - name: Deploy contracts
+        run: bash contracts/scripts/deploy_testnet.sh
+        env:
+          ADMIN_SECRET_KEY: ${{ secrets.TESTNET_ADMIN_SECRET_KEY }}
+          STELLAR_RPC_URL: https://soroban-testnet.stellar.org

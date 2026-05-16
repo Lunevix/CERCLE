@@ -1,0 +1,18 @@
+{
+  "name": "@cercle/sdk",
+  "version": "0.1.0",
+  "description": "CERCLE circle interaction SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "12.3.0"
+  },
+  "devDependencies": {
+    "typescript": "5.4.5",
+    "vitest": "1.6.0"
+  }
+}

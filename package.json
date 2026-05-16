@@ -1,0 +1,27 @@
+{
+  "name": "cercle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Decentralized Rotational Savings & Community Credit Network (ROSCA 2.0 on Stellar)",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "sdk"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "build": "npm run build --workspace=sdk && npm run build --workspace=backend && npm run build --workspace=frontend",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "contracts:build": "cd contracts && cargo build --target wasm32-unknown-unknown --release",
+    "contracts:test": "cd contracts && cargo test",
+    "contracts:deploy:testnet": "cd contracts && ./scripts/deploy_testnet.sh"
+  },
+  "devDependencies": {
+    "concurrently": "8.2.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
