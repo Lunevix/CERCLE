@@ -51,8 +51,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: 1.82
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
         with: { workspaces: contracts }
@@ -71,8 +72,9 @@ jobs:
     environment: testnet
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: 1.82
           targets: wasm32-unknown-unknown
       - name: Install Stellar CLI
         run: cargo install stellar-cli --locked
