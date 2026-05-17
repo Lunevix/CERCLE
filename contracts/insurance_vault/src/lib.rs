@@ -74,9 +74,9 @@ impl InsuranceVault {
         );
     }
 
-    /// Receive premium deposits (called by pool contracts via token transfer + this).
+    /// Receive premium deposits (called cross-contract by RotationalPool).
+    /// No require_auth: the pool IS the transaction invoker; we verify via Authorized list.
     pub fn record_deposit(env: Env, pool: Address, amount: i128) {
-        pool.require_auth();
         assert!(
             env.storage().persistent().has(&DataKey::Authorized(pool)),
             "pool not authorized"

@@ -225,14 +225,137 @@ impl RotationalPool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::{testutils::Address as _, Env};
+    use soroban_sdk::{
+        testutils::Address as _,
+        token, Env,
+    };
+
+    fn setup(env: &Env) -> (Address, Address, Address, Address, RotationalPoolClient) {
+        let admin = Address::generate(env);
+        let member_a = Address::generate(env);
+        let member_b = Address::generate(env);
+
+        // Deploy a mock token
+        let token_admin = Address::generate(env);
+        let token_id = env.register_stellar_asset_contract(token_admin.clone());
+        let token_client = token::StellarAssetClient::new(env, &token_id);
+
+        // Mint enough for both members (contribution=1000, 2 members, 2 cycles)
+        token_client.mint(&member_a, &10_000);
+        token_client.mint(&member_b, &10_000);
+
+        // Deploy vault (no-op for these tests — use a dummy address)
+        let vault = Address::generate(env);
+        let reputation = Address::generate(env);
+
+        let pool_id = env.register_contract(None, RotationalPool);
+        let client = RotationalPoolClient::new(env, &pool_id);
+
+        let config = PoolConfig {
+            circle_id: 1,
+            contribution_amount: 1_000,
+            cycle_length_days: 30,
+            max_members: 2,
+            insurance_bps: 0, // no insurance cut for simplicity
+            token: token_id.clone(),
+            insurance_vault: vault,
+            reputation_registry: reputation,
+            cycle_start_ledger: 0,
+        };
+
+        env.mock_all_auths();
+        client.initialize(&admin, &config);
+
+        (admin, member_a, member_b, token_id, client)
+    }
 
     #[test]
-    fn test_join_and_contribute_cycle() {
+    fn test_join() {
         let env = Env::default();
         env.mock_all_auths();
-        // Minimal smoke test — full integration tested via backend e2e
-        let admin = Address::generate(&env);
-        let _ = admin; // contract registration requires token setup; covered in integration tests
+        let (_, member_a, member_b, _, client) = setup(&env);
+
+        client.join(&member_a);
+        client.join(&member_b);
+
+        let members = client.get_members();
+        assert_eq!(members.len(), 2);
+        assert_eq!(members.get(0).unwrap(), member_a);
+        assert_eq!(members.get(1).unwrap(), member_b);
+    }
+
+    #[test]
+    fn test_contribute_tracked() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let (_, member_a, member_b, _, client) = setup(&env);
+
+        client.join(&member_a);
+        client.join(&member_b);
+        client.contribute(&member_a);
+
+        assert!(client.has_contributed(&member_a, &1));
+        assert!(!client.has_contributed(&member_b, &1));
+
+        let cycle = client.get_cycle();
+        assert_eq!(cycle.contributions_this_cycle, 1);
+        assert_eq!(cycle.total_pooled, 1_000);
+    }
+
+    #[test]
+    fn test_full_payout_cycle() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let (_, member_a, member_b, token_id, client) = setup(&env);
+        let token = token::Client::new(&env, &token_id);
+
+        client.join(&member_a);
+        client.join(&member_b);
+
+        let before_a = token.balance(&member_a);
+        let before_b = token.balance(&member_b);
+
+        // Both contribute — triggers auto-payout to member_a (index 0)
+        client.contribute(&member_a);
+        client.contribute(&member_b);
+
+        // Cycle should have advanced
+        let cycle = client.get_cycle();
+        assert_eq!(cycle.cycle_number, 2);
+        assert_eq!(cycle.total_pooled, 0);
+
+        // member_a should have received 2000 (both contributions, no insurance cut)
+        // member_b paid 1000 and received nothing yet
+        let after_a = token.balance(&member_a);
+        let after_b = token.balance(&member_b);
+        assert_eq!(after_a - before_a, 1_000); // paid 1000, received 2000 → net +1000
+        assert_eq!(before_b - after_b, 1_000); // paid 1000, received nothing → net -1000
+    }
+
+    #[test]
+    fn test_second_cycle_payout_goes_to_member_b() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let (_, member_a, member_b, token_id, client) = setup(&env);
+        let token = token::Client::new(&env, &token_id);
+
+        client.join(&member_a);
+        client.join(&member_b);
+
+        // Cycle 1: member_a gets payout
+        client.contribute(&member_a);
+        client.contribute(&member_b);
+
+        // Cycle 2: member_b should get payout
+        client.contribute(&member_a);
+        client.contribute(&member_b);
+
+        let cycle = client.get_cycle();
+        assert_eq!(cycle.cycle_number, 3);
+
+        // member_b received 2000 in cycle 2
+        let balance_b = token.balance(&member_b);
+        // started 10000, paid 1000 twice, received 2000 once → 10000 - 2000 + 2000 = 10000
+        assert_eq!(balance_b, 10_000);
     }
 }
