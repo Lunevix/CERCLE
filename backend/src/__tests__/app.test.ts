@@ -1,22 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
-import { createApp } from '../src/app';
+import { createApp } from '../app';
 
 // Mock DB and stellar service
-vi.mock('../src/db', () => ({
+vi.mock('../db', () => ({
   db: {
     query: vi.fn(),
     migrate: vi.fn(),
   },
 }));
-vi.mock('../src/stellar', () => ({
+vi.mock('../stellar', () => ({
   stellarService: {
     createCircle: vi.fn().mockResolvedValue('CTEST123'),
     joinCircle: vi.fn().mockResolvedValue(undefined),
     getReputation: vi.fn().mockResolvedValue(500),
   },
 }));
-vi.mock('../src/queues', () => ({
+vi.mock('../queues', () => ({
   contributionQueue: {
     add: vi.fn().mockResolvedValue({ id: 'job-1' }),
   },

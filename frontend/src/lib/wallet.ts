@@ -11,7 +11,8 @@ export async function connectWallet(): Promise<string> {
 }
 
 export async function signTx(xdr: string, network: string): Promise<string> {
-  const result = await signTransaction(xdr, { network });
-  if ('error' in result) throw new Error(result.error);
+  const result = await signTransaction(xdr, { network }) as { error?: string; signedTxXdr?: string };
+  if (result.error) throw new Error(result.error);
+  if (!result.signedTxXdr) throw new Error('Failed to sign transaction');
   return result.signedTxXdr;
 }

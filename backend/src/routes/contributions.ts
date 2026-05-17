@@ -1,7 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
 import { db } from '../db';
-import { stellarService } from '../stellar';
 import { requireAuth } from '../middleware/auth';
 import { contributionQueue } from '../queues';
 

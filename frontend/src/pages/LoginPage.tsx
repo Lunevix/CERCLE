@@ -18,7 +18,6 @@ export default function LoginPage() {
       const { nonce } = await api.post<{ nonce: string }>('/api/auth/challenge', { address });
 
       // Sign nonce with Freighter
-      const { signTransaction } = await import('@stellar/freighter-api');
       // For auth we sign a simple message — in production use SEP-10
       const sig = btoa(nonce); // placeholder; real impl uses Freighter signMessage
 

@@ -30,7 +30,6 @@ export default function CircleDetailPage() {
   if (!circle) return <p className="muted">Loading…</p>;
 
   const isMember = members.some((m: any) => m.address === address);
-  const myMember = members.find((m: any) => m.address === address);
   const payoutData = members.map((m: any, i: number) => ({
     name: `${m.address.slice(0, 4)}…`,
     cycle: i + 1,
