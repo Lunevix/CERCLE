@@ -11,7 +11,7 @@ interface AuthenticatedRequest extends Request {
 export const circleRouter = Router();
 
 // GET /api/circles
-circleRouter.get('/', async (_req, res, next) => {
+circleRouter.get('/', async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const { rows } = await db.query(
       'SELECT * FROM circles ORDER BY created_at DESC LIMIT 50'

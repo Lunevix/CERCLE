@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { db } from '../db';
 import { ussdSessionStore } from '../ussd/sessionStore';
 
@@ -8,7 +8,7 @@ export const ussdRouter = Router();
  * Africa's Talking USSD callback.
  * POST /ussd  (application/x-www-form-urlencoded)
  */
-ussdRouter.post('/', async (req, res) => {
+ussdRouter.post('/', async (req: Request, res: Response) => {
   const { sessionId, serviceCode, phoneNumber, text } = req.body as Record<string, string>;
   const parts = (text ?? '').split('*').filter(Boolean);
   const session = await ussdSessionStore.get(sessionId) ?? { step: 'MAIN', data: {} };
