@@ -1,7 +1,7 @@
 //! CercleFactory — deploys and configures savings circles.
 //! Roles: admin (deployer), member, verifier.
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short,
     Address, Env, Symbol, Vec,

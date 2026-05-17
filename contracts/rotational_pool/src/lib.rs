@@ -1,6 +1,6 @@
 //! RotationalPool — manages contributions and deterministic payout rotation.
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short,
     token, Address, Env, IntoVal, Symbol, Vec,
