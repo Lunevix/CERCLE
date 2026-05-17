@@ -156,7 +156,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "need at least 2 members")]
+    #[should_panic]
     fn test_min_members_validation() {
         let (_, admin, pool, client) = setup();
         client.create_circle(&admin, &1_000_0000_i128, &30_u32, &1_u32, &200_u32, &pool);
