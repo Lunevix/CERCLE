@@ -1,9 +1,13 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
 import { db } from '../db';
 import { stellarService } from '../stellar';
 import { requireAuth } from '../middleware/auth';
 import { contributionQueue } from '../queues';
+
+interface AuthenticatedRequest extends Request {
+  user: { address: string };
+}
 
 export const contributionRouter = Router();
 
@@ -12,12 +16,13 @@ contributionRouter.post(
   '/',
   requireAuth,
   body('circle_id').isInt({ min: 1 }),
-  async (req, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
       const { circle_id } = req.body;
-      const address = (req as any).user.address;
+      const authenticatedReq = req as AuthenticatedRequest;
+      const address = authenticatedReq.user.address;
 
       const { rows: [circle] } = await db.query(
         'SELECT * FROM circles WHERE id=$1 AND status=\'active\'', [circle_id]
@@ -50,13 +55,13 @@ contributionRouter.post(
 );
 
 // GET /api/contributions/:circle_id/cycle/:cycle
-contributionRouter.get('/:circle_id/cycle/:cycle', async (req, res, next) => {
+contributionRouter.get('/:circle_id/cycle/:cycle', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { rows } = await db.query(
       `SELECT c.*, m.address FROM contributions c
        JOIN members m ON m.id=c.member_id
        WHERE c.circle_id=$1 AND c.cycle_number=$2`,
-      [req.params.circle_id, req.params.cycle]
+      [parseInt(req.params.circle_id), parseInt(req.params.cycle)]
     );
     res.json(rows);
   } catch (err) { next(err); }

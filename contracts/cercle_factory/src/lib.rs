@@ -140,17 +140,17 @@ mod tests {
     #[test]
     fn test_create_and_get_circle() {
         let (_, admin, pool, client) = setup();
-        let id = client.create_circle(&admin, &1_000_0000, &30, &5, &200, &pool);
+        let id = client.create_circle(&admin, &1_000_0000_i128, &30_u32, &5_u32, &200_u32, &pool);
         assert_eq!(id, 1);
         let c = client.get_circle(&1);
-        assert_eq!(c.contribution_amount, 1_000_0000);
+        assert_eq!(c.contribution_amount, 1_000_0000_i128);
         assert!(c.active);
     }
 
     #[test]
     fn test_deactivate_circle() {
         let (_, admin, pool, client) = setup();
-        client.create_circle(&admin, &1_000_0000, &30, &5, &200, &pool);
+        client.create_circle(&admin, &1_000_0000_i128, &30_u32, &5_u32, &200_u32, &pool);
         client.deactivate_circle(&admin, &1);
         assert!(!client.get_circle(&1).active);
     }
@@ -159,6 +159,6 @@ mod tests {
     #[should_panic(expected = "need at least 2 members")]
     fn test_min_members_validation() {
         let (_, admin, pool, client) = setup();
-        client.create_circle(&admin, &1_000_0000, &30, &1, &200, &pool);
+        client.create_circle(&admin, &1_000_0000_i128, &30_u32, &1_u32, &200_u32, &pool);
     }
 }

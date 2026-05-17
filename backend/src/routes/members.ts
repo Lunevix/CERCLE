@@ -1,8 +1,12 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
 import { db } from '../db';
 import { stellarService } from '../stellar';
 import { requireAuth } from '../middleware/auth';
+
+interface AuthenticatedRequest extends Request {
+  user: { address: string };
+}
 
 export const memberRouter = Router();
 
@@ -11,12 +15,13 @@ memberRouter.post(
   '/join',
   requireAuth,
   body('circle_id').isInt({ min: 1 }),
-  async (req, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
       const { circle_id } = req.body;
-      const address = (req as any).user.address;
+      const authenticatedReq = req as AuthenticatedRequest;
+      const address = authenticatedReq.user.address;
 
       const { rows: [circle] } = await db.query(
         'SELECT * FROM circles WHERE id=$1 AND status!=\'closed\'', [circle_id]
@@ -28,7 +33,7 @@ memberRouter.post(
       );
       if (existing.length) return res.status(409).json({ error: 'already a member' });
 
-      const { rows: [{ count }] } = await db.query(
+      const { rows: [{ count }] } = await db.query<{ count: string }>(
         'SELECT COUNT(*) FROM members WHERE circle_id=$1', [circle_id]
       );
       if (parseInt(count) >= circle.max_members) {
@@ -49,7 +54,7 @@ memberRouter.post(
 );
 
 // GET /api/members/:address/reputation
-memberRouter.get('/:address/reputation', async (req, res, next) => {
+memberRouter.get('/:address/reputation', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const score = await stellarService.getReputation(req.params.address);
     const { rows } = await db.query(

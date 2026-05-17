@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 import { Keypair } from '@stellar/stellar-sdk';
@@ -13,7 +13,7 @@ const challenges = new Map<string, { nonce: string; expires: number }>();
 authRouter.post(
   '/challenge',
   body('address').isString().notEmpty(),
-  (req, res) => {
+  (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     const { address } = req.body;
@@ -28,7 +28,7 @@ authRouter.post(
   '/verify',
   body('address').isString().notEmpty(),
   body('signature').isString().notEmpty(),
-  (req, res) => {
+  (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 

@@ -1,8 +1,12 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { db } from '../db';
 import { stellarService } from '../stellar';
 import { requireAuth } from '../middleware/auth';
+
+interface AuthenticatedRequest extends Request {
+  user: { address: string };
+}
 
 export const circleRouter = Router();
 
@@ -17,9 +21,10 @@ circleRouter.get('/', async (_req, res, next) => {
 });
 
 // GET /api/circles/:id
-circleRouter.get('/:id', param('id').isInt(), async (req, res, next) => {
+circleRouter.get('/:id', param('id').isInt(), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { rows } = await db.query('SELECT * FROM circles WHERE id=$1', [req.params.id]);
+    const id = parseInt(req.params.id);
+    const { rows } = await db.query('SELECT * FROM circles WHERE id=$1', [id]);
     if (!rows[0]) return res.status(404).json({ error: 'not found' });
     res.json(rows[0]);
   } catch (err) { next(err); }
@@ -34,7 +39,7 @@ circleRouter.post(
   body('cycle_length_days').isInt({ min: 1 }),
   body('max_members').isInt({ min: 2, max: 100 }),
   body('insurance_bps').optional().isInt({ min: 0, max: 1000 }),
-  async (req, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     try {
@@ -42,7 +47,8 @@ circleRouter.post(
         name, contribution_amount, cycle_length_days,
         max_members, insurance_bps = 200,
       } = req.body;
-      const admin = (req as any).user.address;
+      const authenticatedReq = req as AuthenticatedRequest;
+      const admin = authenticatedReq.user.address;
 
       // Create circle on-chain via factory
       const contractId = await stellarService.createCircle({
@@ -61,24 +67,26 @@ circleRouter.post(
 );
 
 // GET /api/circles/:id/members
-circleRouter.get('/:id/members', async (req, res, next) => {
+circleRouter.get('/:id/members', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = parseInt(req.params.id);
     const { rows } = await db.query(
       'SELECT * FROM members WHERE circle_id=$1 ORDER BY join_order',
-      [req.params.id]
+      [id]
     );
     res.json(rows);
   } catch (err) { next(err); }
 });
 
 // GET /api/circles/:id/payouts
-circleRouter.get('/:id/payouts', async (req, res, next) => {
+circleRouter.get('/:id/payouts', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = parseInt(req.params.id);
     const { rows } = await db.query(
       `SELECT p.*, m.address FROM payouts p
        JOIN members m ON m.id=p.member_id
        WHERE p.circle_id=$1 ORDER BY p.cycle_number`,
-      [req.params.id]
+      [id]
     );
     res.json(rows);
   } catch (err) { next(err); }

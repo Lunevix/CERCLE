@@ -3,7 +3,7 @@
 #![no_std]
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short,
-    token, Address, Env, Symbol, Vec,
+    token, Address, Env, IntoVal, Symbol, Vec,
 };
 
 // ── Storage keys ──────────────────────────────────────────────────────────────
@@ -112,6 +112,13 @@ impl RotationalPool {
                 &env.current_contract_address(),
                 &config.insurance_vault,
                 &insurance_cut,
+            );
+
+            // Sync vault internal state
+            env.invoke_contract::<()>(
+                &config.insurance_vault,
+                &Symbol::new(&env, "record_deposit"),
+                soroban_sdk::vec![&env, insurance_cut.into_val(&env)],
             );
         }
 

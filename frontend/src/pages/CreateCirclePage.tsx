@@ -3,9 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { api } from '../lib/api';
 
+interface FormState {
+  name: string;
+  contribution_amount: number;
+  cycle_length_days: number;
+  max_members: number;
+  insurance_bps: number;
+}
+
 export default function CreateCirclePage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormState>({
     name: '',
     contribution_amount: 10,
     cycle_length_days: 30,
@@ -21,8 +29,13 @@ export default function CreateCirclePage() {
     onSuccess: (data) => navigate(`/circles/${data.id}`),
   });
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm(f => ({ ...f, [k]: e.target.type === 'number' ? Number(e.target.value) : e.target.value }));
+  const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+    setForm(f => ({
+      ...f,
+      [k]: value as FormState[typeof k]
+    }));
+  };
 
   return (
     <div className="stack">

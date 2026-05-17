@@ -12,7 +12,7 @@ const BALANCE: Symbol = symbol_short!("BAL");
 
 #[contracttype]
 pub enum DataKey {
-    Claim(Address, u64),   // (circle_pool, cycle)
+    Claim(Address, u32),   // (circle_pool, cycle)
     Authorized(Address),   // authorized pool contracts
 }
 
@@ -45,7 +45,7 @@ impl InsuranceVault {
         recipient: Address,
         amount: i128,
         circle_id: u64,
-        cycle: u64,
+        cycle: u32,
     ) {
         pool.require_auth();
         assert!(

@@ -52,7 +52,11 @@ async function handleUssd(
       [phone]
     );
     if (!rows.length) return 'END You are not in any circles yet.';
-    const list = rows.map((r: any) => `${r.id}. ${r.name} (Cycle ${r.current_cycle})`).join('\n');
+    const list = rows.map((r: { 
+      id: number; 
+      name: string; 
+      current_cycle: number 
+    }) => `${r.id}. ${r.name} (Cycle ${r.current_cycle})`).join('\n');
     return `END Your circles:\n${list}`;
   }
 
@@ -64,7 +68,7 @@ async function handleUssd(
        WHERE m.phone=$1`,
       [phone]
     );
-    const r = rows[0];
+    const r = rows[0] as { on_time: string | number; total: string | number };
     return `END Your reputation:\nOn-time: ${r.on_time}/${r.total} contributions`;
   }
 
