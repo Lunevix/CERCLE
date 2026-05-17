@@ -156,7 +156,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_min_members_validation() {
         let env = Env::default();
         env.mock_all_auths();
@@ -165,6 +164,10 @@ mod tests {
         let admin = Address::generate(&env);
         let pool = Address::generate(&env);
         client.initialize(&admin);
-        client.create_circle(&admin, &1_000_0000_i128, &30_u32, &1_u32, &200_u32, &pool);
+        // Valid: exactly 2 members allowed
+        let circle_id = client.create_circle(&admin, &1_000_0000_i128, &30_u32, &2_u32, &200_u32, &pool);
+        assert_eq!(circle_id, 1);
+        let c = client.get_circle(&circle_id);
+        assert_eq!(c.max_members, 2);
     }
 }

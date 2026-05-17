@@ -3,7 +3,7 @@
 #![cfg_attr(target_family = "wasm", no_std)]
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short,
-    token, Address, Env, Symbol, Vec,
+    token, Address, Env, IntoVal, Symbol, Vec,
 };
 
 // ── Storage keys ──────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ pub enum DataKey {
 // ── Events ────────────────────────────────────────────────────────────────────
 fn emit<T>(env: &Env, topic: Symbol, data: T) 
 where 
-    T: soroban_sdk::IntoVal<Env, soroban_sdk::Val> 
+    T: IntoVal<Env, soroban_sdk::Val> 
 {
     env.events().publish((topic,), data);
 }
@@ -121,7 +121,11 @@ impl RotationalPool {
             env.invoke_contract::<()>(
                 &config.insurance_vault,
                 &Symbol::new(&env, "record_deposit"),
-                soroban_sdk::vec![&env, env.current_contract_address().into_val(&env), insurance_cut.into_val(&env)],
+                soroban_sdk::vec![
+                    &env,
+                    env.current_contract_address().into_val(&env),
+                    insurance_cut.into_val(&env),
+                ],
             );
         }
 
