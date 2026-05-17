@@ -32,8 +32,6 @@ async function handleUssd(
   phone: string,
   sessionId: string,
 ): Promise<string> {
-  const input = parts[parts.length - 1] ?? '';
-
   if (session.step === 'MAIN' || parts.length === 0) {
     await ussdSessionStore.set(sessionId, { step: 'MAIN', data: {} });
     return `CON Welcome to CERCLE

@@ -118,7 +118,7 @@ impl RotationalPool {
             env.invoke_contract::<()>(
                 &config.insurance_vault,
                 &Symbol::new(&env, "record_deposit"),
-                soroban_sdk::vec![&env, insurance_cut.into_val(&env)],
+                soroban_sdk::vec![&env, env.current_contract_address().into_val(&env), insurance_cut.into_val(&env)],
             );
         }
 

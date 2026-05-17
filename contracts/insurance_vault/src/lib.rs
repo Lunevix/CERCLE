@@ -75,7 +75,12 @@ impl InsuranceVault {
     }
 
     /// Receive premium deposits (called by pool contracts via token transfer + this).
-    pub fn record_deposit(env: Env, amount: i128) {
+    pub fn record_deposit(env: Env, pool: Address, amount: i128) {
+        pool.require_auth();
+        assert!(
+            env.storage().persistent().has(&DataKey::Authorized(pool)),
+            "pool not authorized"
+        );
         assert!(amount > 0, "invalid amount");
         let balance: i128 = env.storage().instance().get(&BALANCE).unwrap_or(0);
         env.storage().instance().set(&BALANCE, &(balance + amount));

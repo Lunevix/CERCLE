@@ -29,11 +29,11 @@ export default function CreateCirclePage() {
     onSuccess: (data) => navigate(`/circles/${data.id}`),
   });
 
-  const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const set = <K extends keyof FormState>(k: K) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
     setForm(f => ({
       ...f,
-      [k]: value as FormState[typeof k]
+      [k]: value as FormState[K]
     }));
   };
 
