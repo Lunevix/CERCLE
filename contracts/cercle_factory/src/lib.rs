@@ -4,12 +4,11 @@
 #![cfg_attr(target_family = "wasm", no_std)]
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short,
-    Address, Env, Symbol, Vec,
+    Address, Env, Symbol,
 };
 
 // ── Storage keys ──────────────────────────────────────────────────────────────
 const ADMIN: Symbol = symbol_short!("ADMIN");
-const CIRCLES: Symbol = symbol_short!("CIRCLES");
 const CIRCLE_COUNT: Symbol = symbol_short!("CC");
 
 // ── Data types ────────────────────────────────────────────────────────────────
@@ -126,39 +125,46 @@ mod tests {
     use super::*;
     use soroban_sdk::{testutils::Address as _, Env};
 
-    fn setup() -> (Env, Address, Address, CercleFactoryClient<'static>) {
+    #[test]
+    fn test_create_and_get_circle() {
         let env = Env::default();
         env.mock_all_auths();
-        let contract_id = env.register_contract(None, CercleFactory);
-        let client = CercleFactoryClient::new(&env, &contract_id);
+        let id = env.register_contract(None, CercleFactory);
+        let client = CercleFactoryClient::new(&env, &id);
         let admin = Address::generate(&env);
         let pool = Address::generate(&env);
         client.initialize(&admin);
-        (env, admin, pool, client)
-    }
-
-    #[test]
-    fn test_create_and_get_circle() {
-        let (_, admin, pool, client) = setup();
-        let id = client.create_circle(&admin, &1_000_0000_i128, &30_u32, &5_u32, &200_u32, &pool);
-        assert_eq!(id, 1);
-        let c = client.get_circle(&1);
+        let circle_id = client.create_circle(&admin, &1_000_0000_i128, &30_u32, &5_u32, &200_u32, &pool);
+        assert_eq!(circle_id, 1);
+        let c = client.get_circle(&circle_id);
         assert_eq!(c.contribution_amount, 1_000_0000_i128);
         assert!(c.active);
     }
 
     #[test]
     fn test_deactivate_circle() {
-        let (_, admin, pool, client) = setup();
-        client.create_circle(&admin, &1_000_0000_i128, &30_u32, &5_u32, &200_u32, &pool);
-        client.deactivate_circle(&admin, &1);
-        assert!(!client.get_circle(&1).active);
+        let env = Env::default();
+        env.mock_all_auths();
+        let id = env.register_contract(None, CercleFactory);
+        let client = CercleFactoryClient::new(&env, &id);
+        let admin = Address::generate(&env);
+        let pool = Address::generate(&env);
+        client.initialize(&admin);
+        let circle_id = client.create_circle(&admin, &1_000_0000_i128, &30_u32, &5_u32, &200_u32, &pool);
+        client.deactivate_circle(&admin, &circle_id);
+        assert!(!client.get_circle(&circle_id).active);
     }
 
     #[test]
     #[should_panic]
     fn test_min_members_validation() {
-        let (_, admin, pool, client) = setup();
+        let env = Env::default();
+        env.mock_all_auths();
+        let id = env.register_contract(None, CercleFactory);
+        let client = CercleFactoryClient::new(&env, &id);
+        let admin = Address::generate(&env);
+        let pool = Address::generate(&env);
+        client.initialize(&admin);
         client.create_circle(&admin, &1_000_0000_i128, &30_u32, &1_u32, &200_u32, &pool);
     }
 }

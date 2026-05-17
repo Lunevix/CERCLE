@@ -134,45 +134,59 @@ mod tests {
     use super::*;
     use soroban_sdk::{testutils::Address as _, Env};
 
-    fn setup() -> (Env, Address, Address, ReputationRegistryClient<'static>) {
+    #[test]
+    fn test_initial_score() {
         let env = Env::default();
         env.mock_all_auths();
         let id = env.register_contract(None, ReputationRegistry);
         let client = ReputationRegistryClient::new(&env, &id);
         let admin = Address::generate(&env);
-        let verifier = Address::generate(&env);
         client.initialize(&admin);
-        client.add_verifier(&admin, &verifier);
-        (env, admin, verifier, client)
-    }
-
-    #[test]
-    fn test_initial_score() {
-        let (env, _, _, client) = setup();
         let member = Address::generate(&env);
         assert_eq!(client.get_score(&member), 500);
     }
 
     #[test]
     fn test_on_time_increases_score() {
-        let (env, _, verifier, client) = setup();
+        let env = Env::default();
+        env.mock_all_auths();
+        let id = env.register_contract(None, ReputationRegistry);
+        let client = ReputationRegistryClient::new(&env, &id);
+        let admin = Address::generate(&env);
+        let verifier = Address::generate(&env);
         let member = Address::generate(&env);
+        client.initialize(&admin);
+        client.add_verifier(&admin, &verifier);
         client.record_contribution(&verifier, &member, &true);
         assert_eq!(client.get_score(&member), 510);
     }
 
     #[test]
     fn test_default_decreases_score() {
-        let (env, _, verifier, client) = setup();
+        let env = Env::default();
+        env.mock_all_auths();
+        let id = env.register_contract(None, ReputationRegistry);
+        let client = ReputationRegistryClient::new(&env, &id);
+        let admin = Address::generate(&env);
+        let verifier = Address::generate(&env);
         let member = Address::generate(&env);
+        client.initialize(&admin);
+        client.add_verifier(&admin, &verifier);
         client.record_default(&verifier, &member);
         assert_eq!(client.get_score(&member), 450);
     }
 
     #[test]
     fn test_score_clamped_at_max() {
-        let (env, _, verifier, client) = setup();
+        let env = Env::default();
+        env.mock_all_auths();
+        let id = env.register_contract(None, ReputationRegistry);
+        let client = ReputationRegistryClient::new(&env, &id);
+        let admin = Address::generate(&env);
+        let verifier = Address::generate(&env);
         let member = Address::generate(&env);
+        client.initialize(&admin);
+        client.add_verifier(&admin, &verifier);
         for _ in 0..60 {
             client.record_contribution(&verifier, &member, &true);
         }

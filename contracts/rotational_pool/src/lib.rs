@@ -3,7 +3,7 @@
 #![cfg_attr(target_family = "wasm", no_std)]
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short,
-    token, Address, Env, IntoVal, Symbol, Vec,
+    token, Address, Env, Symbol, Vec,
 };
 
 // ── Storage keys ──────────────────────────────────────────────────────────────
