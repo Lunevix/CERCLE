@@ -13,6 +13,7 @@
     "build": "npm run build --workspace=sdk && npm run build --workspace=backend && npm run build --workspace=frontend",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint --workspaces --if-present -- --fix",
     "contracts:build": "cd contracts && cargo build --target wasm32-unknown-unknown --release",
     "contracts:test": "cd contracts && cargo test",
     "contracts:deploy:testnet": "cd contracts && ./scripts/deploy_testnet.sh"

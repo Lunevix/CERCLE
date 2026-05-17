@@ -44,7 +44,10 @@ pub enum DataKey {
 }
 
 // ── Events ────────────────────────────────────────────────────────────────────
-fn emit(env: &Env, topic: Symbol, data: impl soroban_sdk::IntoVal<Env, soroban_sdk::Val>) {
+fn emit<T>(env: &Env, topic: Symbol, data: T) 
+where 
+    T: soroban_sdk::IntoVal<Env, soroban_sdk::Val> 
+{
     env.events().publish((topic,), data);
 }
 

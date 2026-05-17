@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { api } from '../lib/api';
@@ -29,7 +29,7 @@ export default function CreateCirclePage() {
     onSuccess: (data) => navigate(`/circles/${data.id}`),
   });
 
-  const set = <K extends keyof FormState>(k: K) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const set = <K extends keyof FormState>(k: K) => (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
     setForm(f => ({
       ...f,

@@ -9,7 +9,7 @@ export const ussdRouter = Router();
  * POST /ussd  (application/x-www-form-urlencoded)
  */
 ussdRouter.post('/', async (req: Request, res: Response) => {
-  const { sessionId, serviceCode, phoneNumber, text } = req.body as Record<string, string>;
+  const { sessionId, phoneNumber, text } = req.body as Record<string, string>;
   const parts = (text ?? '').split('*').filter(Boolean);
   const session = await ussdSessionStore.get(sessionId) ?? { step: 'MAIN', data: {} };
 
@@ -66,7 +66,8 @@ async function handleUssd(
        WHERE m.phone=$1`,
       [phone]
     );
-    const r = rows[0] as { on_time: string | number; total: string | number };
+    const r = rows[0] as { on_time: string | number; total: string | number } | undefined;
+    if (!r) return 'END No reputation data found.';
     return `END Your reputation:\nOn-time: ${r.on_time}/${r.total} contributions`;
   }
 

@@ -12,6 +12,11 @@ fi
 
 echo "🚀 Starting automation sequence..."
 
+# Check for changes
+if [ -z "$(git status --porcelain)" ]; then 
+  echo "⚠️ No changes to commit."; exit 0; 
+fi
+
 git add .
 git commit -m "$MESSAGE"
 
